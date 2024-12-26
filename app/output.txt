@@ -1,0 +1,45 @@
+
+app
+|   auth.py
+|   crud.py
+|   main.py
+|   output.txt
+|   requirements.txt
+|   schemas.py
+|   secutity.py
+|   __init__.py
+|   
++---backend
+|   |   db.py
+|   |   db_depends.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           db.cpython-312.pyc
+|           db_depends.cpython-312.pyc
+|           __init__.cpython-312.pyc
+|           
++---models
+|   |   ads.py
+|   |   users.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           ads.cpython-312.pyc
+|           users.cpython-312.pyc
+|           __init__.cpython-312.pyc
+|           
++---routers
+|   |   ads.py
+|   |   users.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           ads.cpython-312.pyc
+|           users.cpython-312.pyc
+|           __init__.cpython-312.pyc
+|           
+\---__pycache__
+        main.cpython-312.pyc
+        __init__.cpython-312.pyc
+        
