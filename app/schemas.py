@@ -33,7 +33,17 @@ class ModelUser(BaseModel):
     phone: str
 
 
+class UpdateUser(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
+    first_name: str
+    last_name: str
+    phone: str
+
+
 class ModelAd(BaseModel):
+    id : int
     title: str
     category: str
     description: str
@@ -48,7 +58,7 @@ class CreateAd(BaseModel):
     category: str
     description: str
     price: float
-    user_id: int
+
 
 
 class UpdateAd(BaseModel):
@@ -56,4 +66,8 @@ class UpdateAd(BaseModel):
     category: str
     description: str
     price: float
-    user_id: int
+
+
+
+class TokenRequest(BaseModel):
+    refresh_token: str
