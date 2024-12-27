@@ -74,6 +74,9 @@ async def update_user_data(user: UpdateUser,
 # 6	Удалить свою закрыт DEL	http://127.0.0.1:8000/api/user/
 @router.delete("/user/", response_model=dict)
 async def delete_user(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+
+    for key, value in vars(current_user).items():
+        print(key, value)
     db.delete(current_user)
     db.commit()
     return {'message': 'User deleted successfully.'}
