@@ -6,15 +6,20 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.auth import (ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, ALGORITHM,
-                      REFRESH_TOKEN_EXPIRE_DAYS, create_refresh_token, get_current_user,
-                      REFRESH_SECRET_KEY)
+                      REFRESH_TOKEN_EXPIRE_DAYS, create_refresh_token, get_current_user)
 from app.backend.db_depends import get_db
+from app.config import settings
 from app.crud import hash_password, verify_password
 from app.models.ads import Ad
 from app.models.users import User
 from app.schemas import RegisterUser, Token, LoginUser, ModelUser, ModelAd, TokenRequest, UpdateUser
 
 router = APIRouter()
+
+
+@router.get("/", response_model=dict)
+async def welcome():
+    return {'message': 'Welcome to board'}
 
 
 # 1	Пользователи все открыт GET	http://127.0.0.1:8000/api/users/
@@ -26,8 +31,8 @@ async def read_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_d
     return users
 
 
-# 2	Объявления пользователя id открыт GET	http://127.0.0.1:8000/api/user/<user_id>/advs/
-@router.get("/user/{user_id}/advs/", response_model=list[ModelAd])
+# 2	Объявления пользователя id открыт GET	http://127.0.0.1:8000/api/user/<user_id>/ads/
+@router.get("/user/{user_id}/ads/", response_model=list[ModelAd])
 async def ads_by_user_id(user_id: int, db: Session = Depends(get_db)):
     user = db.execute(select(User).where(User.id == user_id)).scalar_one_or_none()
     if user is None:
@@ -53,11 +58,17 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
     return user
 
 
-# 5	Изменить свою закрыт PUT	http://127.0.0.1:8000/api/user/
-@router.put("/user/", response_model=ModelUser)
+# 5	Изменить свою закрыт PUT	http://127.0.0.1:8000/api/user/update/
+@router.put("/user/update/", response_model=ModelUser)
 async def update_user_data(user: UpdateUser,
                            current_user: User = Depends(get_current_user),
                            db: Session = Depends(get_db)):
+    exist_user = db.execute(select(User).filter(
+        (User.username == user.username) | (User.email == user.email))).scalar_one_or_none()
+
+    if exist_user and exist_user.id != current_user.id:
+        raise HTTPException(status_code=400, detail="Username or email already registered")
+
     for key, value in vars(user).items():
         if hasattr(current_user, key):
             setattr(current_user, key, value)
@@ -71,23 +82,26 @@ async def update_user_data(user: UpdateUser,
     return current_user
 
 
-# 6	Удалить свою закрыт DEL	http://127.0.0.1:8000/api/user/
-@router.delete("/user/", response_model=dict)
-async def delete_user(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+# 6	Удалить свою закрыт DEL	http://127.0.0.1:8000/api/user/delete/
+@router.delete("/user/delete/", status_code=204)
+async def delete_user(current_user: User = Depends(get_current_user),
+                      db: Session = Depends(get_db)):
+    if not current_user:
+        raise HTTPException(status_code=404, detail="User  not found")
 
-    for key, value in vars(current_user).items():
-        print(key, value)
     db.delete(current_user)
     db.commit()
-    return {'message': 'User deleted successfully.'}
 
 
 # 7	Регистрация открыт POST	http://127.0.0.1:8000/api/user/register/
 @router.post("/user/register/")
 async def register_user(username: RegisterUser, db: Session = Depends(get_db)):
-    user = db.execute(select(User).where(User.username == username.username)).scalar_one_or_none()
-    if user:
-        raise HTTPException(status_code=400, detail="Username already registered")
+    exist_user = db.execute(select(User).filter(
+        (User.username == username.username) | (User.email == username.email))).scalar_one_or_none()
+
+    if exist_user:
+        raise HTTPException(status_code=400, detail="Username or email already registered")
+
     new_user = User(username=username.username, password=hash_password(username.password),
                     email=username.email, first_name=username.first_name, last_name=username.last_name,
                     phone=username.phone)
@@ -95,6 +109,7 @@ async def register_user(username: RegisterUser, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     return {"message": "User registered successfully", "user_id": new_user.id}
+
 
 
 # 8	Авторизация открыт POST	http://127.0.0.1:8000/api/token/login/
@@ -118,7 +133,7 @@ async def refresh_token(token_request: TokenRequest, db: Session = Depends(get_d
     refresh_token = token_request.refresh_token
     credentials_exception = HTTPException(status_code=401, detail="Invalid refresh token")
     try:
-        payload = jwt.decode(refresh_token, REFRESH_SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(refresh_token, settings.refresh_secret_key, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception

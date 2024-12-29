@@ -12,15 +12,15 @@ router = APIRouter()
 
 
 # ADS
-# 1.	Объявления все открытый GET	http://127.0.0.1:8000/api/advs/
-@router.get("/advs")
+# 1.	Объявления все открытый GET	http://127.0.0.1:8000/api/ads/
+@router.get("/ads/")
 async def all_ads(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     ads = db.execute(select(Ad).offset(skip).limit(limit)).scalars().all()
     return ads
 
 
-# 2.	Объявление id открытый GET	http://127.0.0.1:8000/api/adv/2/
-@router.get("/adv/{ad_id}")
+# 2.	Объявление id открытый GET	http://127.0.0.1:8000/api/ad/2/
+@router.get("/ad/{ad_id}")
 async def get_ad(ad_id: int, db: Session = Depends(get_db)):
     ad = db.execute(select(Ad).where(Ad.id == ad_id)).scalar_one_or_none()
     if ad is None:
@@ -28,8 +28,8 @@ async def get_ad(ad_id: int, db: Session = Depends(get_db)):
     return ad
 
 
-# 3.	Создать свое закрыт POST	http://127.0.0.1:8000/api/adv/
-@router.post("/adv/", response_model=ModelAd)
+# 3.	Создать свое закрыт POST	http://127.0.0.1:8000/api/ad/create/
+@router.post("/ad/create/", response_model=ModelAd)
 async def create_ad(ad_request: CreateAd,
                     current_user: User = Depends(get_current_user),
                     db: Session = Depends(get_db)):
@@ -42,8 +42,8 @@ async def create_ad(ad_request: CreateAd,
     return new_ad
 
 
-# 4.	Изменить свое закрыт PUT	http://127.0.0.1:8000/api/adv/7/
-@router.put("/adv/{ad_id}", response_model=ModelAd)
+# 4.	Изменить свое закрыт PUT	http://127.0.0.1:8000/api/ad/7/update/
+@router.put("/ad/{ad_id}/update/", response_model=ModelAd)
 async def update_ad(ad_id: int, ad_request: UpdateAd,
                     current_user: User = Depends(get_current_user),
                     db: Session = Depends(get_db)):
@@ -62,8 +62,8 @@ async def update_ad(ad_id: int, ad_request: UpdateAd,
     return ad
 
 
-# 5.	Удалить свое закрыт DEL	http://127.0.0.1:8000/api/adv/2/
-@router.delete("/adv/{ad_id}", response_model=dict)
+# 5.	Удалить свое закрыт DEL	http://127.0.0.1:8000/api/ad/2/delete/
+@router.delete("/ad/{ad_id}/delete/", response_model=dict)
 async def delete_ad(ad_id: int,
                     current_user: User = Depends(get_current_user),
                     db: Session = Depends(get_db)):
