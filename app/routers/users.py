@@ -114,7 +114,7 @@ async def register_user(username: RegisterUser, db: Session = Depends(get_db)):
 
 # 8	Авторизация открыт POST	http://127.0.0.1:8000/api/token/login/
 @router.post("/token/login/", response_model=dict)
-async def login(username: LoginUser, db: Session = Depends(get_db)):
+async def set_login(username: LoginUser, db: Session = Depends(get_db)):
     user = db.execute(select(User).where(User.username == username.username)).scalar_one_or_none()
     if user is None or not verify_password(username.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid username or password")
@@ -129,7 +129,7 @@ async def login(username: LoginUser, db: Session = Depends(get_db)):
 
 # 9	Рефреш-токен закрыт POST	http://127.0.0.1:8000/api/token/refresh/
 @router.post("/token/refresh/", response_model=Token)
-async def refresh_token(token_request: TokenRequest, db: Session = Depends(get_db)):
+async def set_refresh_token(token_request: TokenRequest, db: Session = Depends(get_db)):
     refresh_token = token_request.refresh_token
     credentials_exception = HTTPException(status_code=401, detail="Invalid refresh token")
     try:
