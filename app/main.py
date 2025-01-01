@@ -1,13 +1,7 @@
-import os
-
-from dotenv import load_dotenv
 from fastapi import FastAPI
-from pydantic.v1 import BaseSettings
 
 from app.backend.db import engine, Base
 from app.routers import users, ads
-
-
 
 app = FastAPI(swagger_ui_parameters={"tryItOutEnabled": True})
 
