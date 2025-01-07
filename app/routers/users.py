@@ -108,8 +108,8 @@ async def register_user(username: RegisterUser, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return {"message": "User registered successfully", "user_id": new_user.id}
-
+    # return {"message": "User registered successfully", "user_id": new_user.id}
+    raise HTTPException(status_code=201, detail=f"User registered successfully, user_id: {new_user.id}")
 
 
 # 8	Авторизация открыт POST	http://127.0.0.1:8000/api/token/login/
